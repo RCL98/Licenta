@@ -100,6 +100,13 @@ def logarithm_test_numbers(numOfBts: int, centered = False):
   h = pow(generator, exp, prime)
   return prime, generator, exp, h
 
+def logarithm_test_numbers_same_p(numOfValues: int, numOfBts: int):
+  prime = get_primes(numOfBts, 1)[0]
+  generator = artmod.generator_Zp(prime)
+  exps = rand.sample(range(2, prime - 1), numOfValues)
+  hs = [pow(generator, exp, prime) for exp in exps]
+  return prime, generator, exps, hs
+
 # plds = logarithm_test_numbers(35, 40)
 
 

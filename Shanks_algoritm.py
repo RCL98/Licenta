@@ -4,7 +4,7 @@ from math import ceil
 from functools import reduce
 import operator
 import generate_primes as gnp
-import time
+from timeit import default_timer as timer
 from random import randint, seed
 
 def shanks_ordin_necunoscut(g, h, p):
@@ -63,7 +63,7 @@ def shanks_classic(g, h, p, ordin):
       giant_steps += 1
   return None
 
-def shanks_ordin_cunoscut_with_memory(g, h_values, p, ordin):
+def shanks_classic_with_memory(g, h_values, p, ordin):
   n = ceil(sqrt(ordin))
   small_steps = 1
   e = 1
@@ -278,41 +278,43 @@ def test_shanks(numOfTests: int, numOfBits: int, type: str, r = 2):
       print(f"Test passed! p:{p[0]}, time:{t:.7f} ms, small_steps:{small_steps} giant_steps:{giant_steps}")
   print(f"Avg time:{avg(times)}")
 
-def test_shanks_same_p(numOfTests: int, numOfBits: int, r = 2):
-  times = []
-  p, g, exponents, h_values = gnp.logarithm_test_numbers(1, numOfBits)
-  l, m = optim_factors(p[0] - 1)
-  for _ in range(numOfTests):
-    exponents.append(randint(2, p[0] - 1))
-    h_values.append(pow(p[0], g[0], exponents[-1]))
+def test_shanks_same_p(numOfTests: int, numOfBits: int, r = 2, radn_seed = 0):
+  seed(radn_seed)
+  times_c, times_g, times_f = [], [], []
+  p, g, exps, hs = gnp.logarithm_test_numbers_same_p(numOfTests, numOfBits)
+  l, m = optim_factors(p - 1)
 
-  t_start_c = time.time()
-  x_c, small_steps_c, giant_steps_c = Shanks_ordin_cunoscut_with_memory(g[0], h_values, p[0], p[0] - 1)
-  t_stop_c = time.time()
-  for (e, x) in zip(exponents, x_c):
-    if e!= x:
-      print(f"e:{e}  x_c:{x}")
+  t_start_c = timer()
+  x_cs, small_steps_c, giant_steps_c = shanks_classic_with_memory(g, hs, p, p - 1)
+  t_stop_c = timer()
 
-  t_start_g = time.time()
-  x_g, small_steps_g, giant_steps_g = Shanks_general_with_memory(g[0], h_values, p[0], p[0] - 1, r)
-  t_stop_g = time.time()
-  for (e, x) in zip(exponents, x_g):
-    if e != x:
-      print(f"e:{e}  x_g:{x}")
 
-  t_start_f = time.time()
-  x_f, small_steps_f, giant_steps_f = Shanks_factor_with_memory(g[0], h_values, p[0], l, m)
-  t_stop_f = time.time()
-  for (e, x) in zip(exponents, x_f):
-    if e != x:
-      print(f"e:{e}  x_f:{x}")
+  t_start_g = timer()
+  x_gs, small_steps_g, giant_steps_g = shanks_general_with_memory(g, hs, p, p - 1, r)
+  t_stop_g = timer()
 
-    print(f"t_c: {(t_stop_c - t_start_c)/1000:.7f}, t_g: {(t_stop_g - t_start_g)/1000}:.7f, t_f:{(t_stop - t_start)/1000:.7f}")
-    print(f"sm_c: {small_steps_c}, sm_g: {small_steps_g}, sm_f:{small_steps_f}")
-    for (e, g_c, g_g, g_f) in zip(exponents, giant_steps_c, giant_steps_g, giant_steps_f):
-      print(f"e:{e}, tgiant_steps_c:{g_c}, giant_steps_g:{g_g} giant_steps_f:{g_f}")
 
-def test_shanks_middle(numOfTests: int, numOfBits: int, randSeed):
+  t_start_f = timer()
+  x_fs, small_steps_f, giant_steps_f = shanks_factor_with_memory(g, hs, p, l, m)
+  t_stop_f = timer()
+
+  for e, x_c, x_g, x_f in zip(exps, x_cs, x_gs, x_fs):
+    if x_c != e:
+      print(f"e:{e}  x_c:{x_c}")
+    if x_g != e:
+      print(f"e:{e}  x_g:{x_g}")
+    if x_f != e:
+      print(f"e:{e}  x_f:{x_f}")
+
+  print(f"t_c: {(t_stop_c - t_start_c):.7f}, t_g: {(t_stop_g - t_start_g)}, t_f:{(t_stop_f - t_start_f)}")
+  print(f"sm_c: {small_steps_c}, sm_g: {small_steps_g}, sm_f:{small_steps_f}")
+  print()
+  for (e, g_c, g_g, g_f) in zip(exps, giant_steps_c, giant_steps_g, giant_steps_f):
+    print(f"e:{e}, giant_steps_c:{g_c}, giant_steps_g:{g_g} giant_steps_f:{g_f}")
+  print()
+  print(f"giant_steps_c_avg:{avg(giant_steps_c)}, giant_steps_g:{avg(giant_steps_g)}, giant_steps_f:{avg(giant_steps_f)}")
+
+def test_shanks_middle(numOfTests: int, numOfBits: int, randSeed = 0):
   seed(randSeed)
   giant_steps_c_list, small_steps_c_list = [], []
   giant_steps_m_list, small_steps_m_list = [], []
@@ -335,3 +337,4 @@ def test_shanks_middle(numOfTests: int, numOfBits: int, randSeed):
       print(f"M_passed x:{x_c}, exp:{exp}, sm:{small_steps_m}, gs:{giant_steps_m}\n")
   print(f"Classic: smavg:{avg(small_steps_c_list)}, gsavg:{avg(giant_steps_c_list)}")
   print(f"Middle: smavg:{avg(small_steps_m_list)}, gsavg:{avg(giant_steps_m_list)}")
+
