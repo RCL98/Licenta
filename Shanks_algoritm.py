@@ -7,6 +7,7 @@ import generate_primes as gnp
 from timeit import default_timer as timer
 from random import randint, seed
 import numpy as np
+from sys import getsizeof
 
 def shanks_ordin_necunoscut(g, h, p):
   rad_p = ceil(sqrt(p - 1))
@@ -45,7 +46,7 @@ def shanks_classic(g, h, p, ordin):
   for j in range(1, n):
     e = (e * g) % p
     if e == h:
-      return j, small_steps, giant_steps
+      return j, small_steps, giant_steps, getsizeof(lista)
     else:
       lista[e] = j
       small_steps += 1
@@ -58,7 +59,7 @@ def shanks_classic(g, h, p, ordin):
   for i in range(0, n):
     try:
       j = lista[e]
-      return i * n  + j, small_steps, giant_steps
+      return i * n  + j, small_steps, giant_steps, getsizeof(lista)
     except KeyError:
       e = (e * u) % p
       giant_steps += 1
@@ -244,52 +245,39 @@ def Shanks(g, h, p, ordin = None):
     return Shanks_classic(g, h, p, ordin)
   return Shanks_ordin_necunoscut(g, h, p)
 
-# def test_shanks(numOfTests: int, numOfBits: int):
-#   primes, generators, exponents, h_values = gnp.logarithm_test_numbers(numOfTests, numOfBits)
-#   for (p, g, e, h) in zip(primes, generators, exponents, h_values):
-#     x = Shanks_general(g, h, p, p - 1, e)
-#     if e != x:
-#       print(f"e:{e}  x:{x}")
-#     else:
-#       print("Test passed!")
-
 def avg(lst):
     return reduce(lambda a, b: a + b, lst) / len(lst)
 
 def o_shanks(bits):
   return bits * pow(2, bits // 2) / 10
 
-def exponential_fit(x, a, b, c):
-  return a * np.exp(-b * x) + c
-
 def shakns_benchmark(numOfTests: int, maxBits: int, rand_seed = 0):
     import matplotlib.pyplot as plt
     from scipy import interpolate
     seed(rand_seed)
-    times, small_steps_list, giant_steps_list, total_steps, onums, bits = [], [], [], [], [], []
+    times, small_steps_list, giant_steps_list, total_steps, list_sizes, bits = [], [], [], [], [], []
     for numOfBits in range(10, maxBits + 5, 5):
-      time, small, giant, total = 0, 0, 0, 0
+      time, small, giant, total, list_sz = 0, 0, 0, 0, 0
       bits.append(numOfBits)
       for _ in range(numOfTests):
         p, g, e, h = gnp.logarithm_test_numbers(numOfBits)
         t_start = timer()
-        x, small_steps, giant_steps = shanks_classic(g, h, p, p - 1)
+        x, small_steps, giant_steps, list_size = shanks_classic(g, h, p, p - 1)
         time += (timer() - t_start)*1000
-        small += small_steps; giant += giant_steps; total += small_steps + giant_steps
+        small += small_steps; giant += giant_steps; total += small_steps + giant_steps; list_sz += list_size
       times.append(time/numOfTests)
       small_steps_list.append(small/numOfTests)
       giant_steps_list.append(giant/numOfTests)
       total_steps.append(total/numOfTests)
-      # onums.append(o_shanks(numOfBits))
-    tck = interpolate.splrep(bits, total_steps)
+      list_sizes.append(list_sz/numOfTests)
+
     next_xs = list(range(numOfBits + 5, numOfBits + 30, 5))
-    next_ys = [interpolate.splev(next_x, tck) for next_x in next_xs]
-
-    # print(onums)
-    # print(total_steps)
-
     plt.figure(1)
-    plt.plot(bits, times)
+    tck = interpolate.splrep(bits, times)
+    next_ys = [interpolate.splev(next_x, tck) for next_x in next_xs]
+    plt.xlim(5, numOfBits + 30)
+    plt.plot(np.append(bits, next_xs), np.append(times, next_ys), 'b--')
+    plt.plot(bits, times, c='b')
     plt.xlabel('biti')
     plt.ylabel('timp(ms)')
     plt.yscale('log')
@@ -297,7 +285,11 @@ def shakns_benchmark(numOfTests: int, maxBits: int, rand_seed = 0):
     plt.savefig('imagini/shanks_classic_timp.png')
 
     plt.figure(2)
-    plt.plot(bits, small_steps_list)
+    tck = interpolate.splrep(bits, small_steps_list)
+    next_ys = [interpolate.splev(next_x, tck) for next_x in next_xs]
+    plt.xlim(5, numOfBits + 30)
+    plt.plot(np.append(bits, next_xs), np.append(small_steps_list, next_ys), 'b--')
+    plt.plot(bits, small_steps_list, c='b')
     plt.xlabel('biti')
     plt.ylabel('pasi mici')
     plt.yscale('log')
@@ -305,7 +297,11 @@ def shakns_benchmark(numOfTests: int, maxBits: int, rand_seed = 0):
     plt.savefig('imagini/shanks_classic_pasi_mici.png')
 
     plt.figure(3)
-    plt.plot(bits, giant_steps_list)
+    tck = interpolate.splrep(bits, giant_steps_list)
+    next_ys = [interpolate.splev(next_x, tck) for next_x in next_xs]
+    plt.xlim(5, numOfBits + 30)
+    plt.plot(np.append(bits, next_xs), np.append(giant_steps_list, next_ys), 'b--')
+    plt.plot(bits, giant_steps_list, c='b')
     plt.xlabel('biti')
     plt.ylabel('pasi giant')
     plt.yscale('log')
@@ -313,7 +309,9 @@ def shakns_benchmark(numOfTests: int, maxBits: int, rand_seed = 0):
     plt.savefig('imagini/shanks_classic_pasi_mari.png')
 
     plt.figure(4)
-    plt.xlim(0, numOfBits + 25)
+    plt.xlim(5, numOfBits + 30)
+    tck = interpolate.splrep(bits, total_steps)
+    next_ys = [interpolate.splev(next_x, tck) for next_x in next_xs]
     plt.plot(np.append(bits, next_xs), np.append(total_steps, next_ys), 'b--')
     plt.plot(bits, total_steps, c='b')
     plt.xlabel('biti')
@@ -321,6 +319,19 @@ def shakns_benchmark(numOfTests: int, maxBits: int, rand_seed = 0):
     plt.yscale('log')
     plt.grid(True)
     plt.savefig('imagini/shanks_classic_pasi_total.png')
+
+    plt.figure(5)
+    plt.xlim(5, numOfBits + 30)
+    tck = interpolate.splrep(bits, list_sizes)
+    next_ys = [interpolate.splev(next_x, tck) for next_x in next_xs]
+    plt.plot(np.append(bits, next_xs), np.append(list_sizes, next_ys), 'b--')
+    plt.plot(bits, list_sizes, c='b')
+    plt.xlabel('biti')
+    plt.ylabel('bytes')
+    plt.yscale('log')
+    plt.grid(True)
+    plt.savefig('imagini/shanks_classic_memory.png')
+
     plt.show()
 
 def test_shanks(numOfTests: int, numOfBits: int, type: str, r = 2):
@@ -405,4 +416,3 @@ def test_shanks_middle(numOfTests: int, numOfBits: int, randSeed = 0):
       print(f"M_passed x:{x_c}, exp:{exp}, sm:{small_steps_m}, gs:{giant_steps_m}\n")
   print(f"Classic: smavg:{avg(small_steps_c_list)}, gsavg:{avg(giant_steps_c_list)}")
   print(f"Middle: smavg:{avg(small_steps_m_list)}, gsavg:{avg(giant_steps_m_list)}")
-
