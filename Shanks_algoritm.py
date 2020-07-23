@@ -267,7 +267,7 @@ def shakns_benchmark(numOfTests: int, maxBits: int, rand_seed = 0):
     from scipy import interpolate
     seed(rand_seed)
     times, small_steps_list, giant_steps_list, total_steps, onums, bits = [], [], [], [], [], []
-    for numOfBits in range(10, maxBits, 5):
+    for numOfBits in range(10, maxBits + 5, 5):
       time, small, giant, total = 0, 0, 0, 0
       bits.append(numOfBits)
       for _ in range(numOfTests):
@@ -282,45 +282,46 @@ def shakns_benchmark(numOfTests: int, maxBits: int, rand_seed = 0):
       total_steps.append(total/numOfTests)
       # onums.append(o_shanks(numOfBits))
     tck = interpolate.splrep(bits, total_steps)
-    next_x = 60
-    next_y = interpolate.splev(next_x, tck)
+    next_xs = list(range(numOfBits + 5, numOfBits + 30, 5))
+    next_ys = [interpolate.splev(next_x, tck) for next_x in next_xs]
 
     # print(onums)
     # print(total_steps)
 
     plt.figure(1)
     plt.plot(bits, times)
-    plt.xlabel('bits')
-    plt.ylabel('time: ms')
+    plt.xlabel('biti')
+    plt.ylabel('timp(ms)')
     plt.yscale('log')
     plt.grid(True)
+    plt.savefig('imagini/shanks_classic_timp.png')
 
     plt.figure(2)
     plt.plot(bits, small_steps_list)
-    plt.xlabel('bits')
-    plt.ylabel('baby-steps')
+    plt.xlabel('biti')
+    plt.ylabel('pasi mici')
     plt.yscale('log')
     plt.grid(True)
+    plt.savefig('imagini/shanks_classic_pasi_mici.png')
 
     plt.figure(3)
     plt.plot(bits, giant_steps_list)
-    plt.xlabel('bits')
-    plt.ylabel('giant-steps')
+    plt.xlabel('biti')
+    plt.ylabel('pasi giant')
     plt.yscale('log')
     plt.grid(True)
+    plt.savefig('imagini/shanks_classic_pasi_mari.png')
 
     plt.figure(4)
-    plt.plot(np.append(bits, next_x), np.append(total_steps, next_y), 'ro')
-    # plt.plot(bits, onums, c='r')
-    plt.xlabel('bits')
-    plt.ylabel('total steps')
+    plt.xlim(0, numOfBits + 25)
+    plt.plot(np.append(bits, next_xs), np.append(total_steps, next_ys), 'b--')
+    plt.plot(bits, total_steps, c='b')
+    plt.xlabel('biti')
+    plt.ylabel('pasi totali')
     plt.yscale('log')
     plt.grid(True)
-
+    plt.savefig('imagini/shanks_classic_pasi_total.png')
     plt.show()
-
-
-# shakns_benchmark(30, 45, 42)
 
 def test_shanks(numOfTests: int, numOfBits: int, type: str, r = 2):
   times = []
