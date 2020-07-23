@@ -1,11 +1,12 @@
 from aritmetica_modulara import sqrt
 from sympy.ntheory import factorint
-from math import ceil
+from math import ceil, log2
 from functools import reduce
 import operator
 import generate_primes as gnp
 from timeit import default_timer as timer
 from random import randint, seed
+import numpy as np
 
 def shanks_ordin_necunoscut(g, h, p):
   rad_p = ceil(sqrt(p - 1))
@@ -254,6 +255,72 @@ def Shanks(g, h, p, ordin = None):
 
 def avg(lst):
     return reduce(lambda a, b: a + b, lst) / len(lst)
+
+def o_shanks(bits):
+  return bits * pow(2, bits // 2) / 10
+
+def exponential_fit(x, a, b, c):
+  return a * np.exp(-b * x) + c
+
+def shakns_benchmark(numOfTests: int, maxBits: int, rand_seed = 0):
+    import matplotlib.pyplot as plt
+    from scipy import interpolate
+    seed(rand_seed)
+    times, small_steps_list, giant_steps_list, total_steps, onums, bits = [], [], [], [], [], []
+    for numOfBits in range(10, maxBits, 5):
+      time, small, giant, total = 0, 0, 0, 0
+      bits.append(numOfBits)
+      for _ in range(numOfTests):
+        p, g, e, h = gnp.logarithm_test_numbers(numOfBits)
+        t_start = timer()
+        x, small_steps, giant_steps = shanks_classic(g, h, p, p - 1)
+        time += (timer() - t_start)*1000
+        small += small_steps; giant += giant_steps; total += small_steps + giant_steps
+      times.append(time/numOfTests)
+      small_steps_list.append(small/numOfTests)
+      giant_steps_list.append(giant/numOfTests)
+      total_steps.append(total/numOfTests)
+      # onums.append(o_shanks(numOfBits))
+    tck = interpolate.splrep(bits, total_steps)
+    next_x = 60
+    next_y = interpolate.splev(next_x, tck)
+
+    # print(onums)
+    # print(total_steps)
+
+    plt.figure(1)
+    plt.plot(bits, times)
+    plt.xlabel('bits')
+    plt.ylabel('time: ms')
+    plt.yscale('log')
+    plt.grid(True)
+
+    plt.figure(2)
+    plt.plot(bits, small_steps_list)
+    plt.xlabel('bits')
+    plt.ylabel('baby-steps')
+    plt.yscale('log')
+    plt.grid(True)
+
+    plt.figure(3)
+    plt.plot(bits, giant_steps_list)
+    plt.xlabel('bits')
+    plt.ylabel('giant-steps')
+    plt.yscale('log')
+    plt.grid(True)
+
+    plt.figure(4)
+    plt.plot(np.append(bits, next_x), np.append(total_steps, next_y), 'ro')
+    # plt.plot(bits, onums, c='r')
+    plt.xlabel('bits')
+    plt.ylabel('total steps')
+    plt.yscale('log')
+    plt.grid(True)
+
+    plt.show()
+
+
+shakns_benchmark(30, 45, 42)
 
 def test_shanks(numOfTests: int, numOfBits: int, type: str, r = 2):
   times = []

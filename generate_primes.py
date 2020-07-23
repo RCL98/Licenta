@@ -22,6 +22,8 @@ def obtine_parametrii(numar: int) -> (int, int):
 
 def alege_martori(numar: int, cardinal: int) -> list:
   martori = set()
+  if numar < cardinal:
+    cardinal = numar // 2
   while len(martori) < cardinal:
     martori.add(rand.randint(2, numar - 2))
   return martori
@@ -91,6 +93,8 @@ def pohlig_primes(magnitude):
 
 def logarithm_test_numbers(numOfBts: int, centered = False):
   prime = get_primes(numOfBts, 1)[0]
+  while prime < 10:
+    prime = get_primes(numOfBts, 1)[0]
   generator = artmod.generator_Zp(prime)
   if centered:
     exp = rand.randint((prime - 1) // 2 - (prime - 1) // 5,
