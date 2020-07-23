@@ -320,7 +320,7 @@ def shakns_benchmark(numOfTests: int, maxBits: int, rand_seed = 0):
     plt.show()
 
 
-shakns_benchmark(30, 45, 42)
+# shakns_benchmark(30, 45, 42)
 
 def test_shanks(numOfTests: int, numOfBits: int, type: str, r = 2):
   times = []
