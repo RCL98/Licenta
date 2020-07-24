@@ -6,7 +6,9 @@ import operator
 import generate_primes as gnp
 from timeit import default_timer as timer
 from random import randint, seed
+import numpy as np
 from sys import getsizeof
+import bisect
 
 def shanks_ordin_necunoscut(g, h, p):
   rad_p = ceil(sqrt(p - 1))
@@ -60,6 +62,50 @@ def shanks_classic(g, h, p, ordin):
       j = lista[e]
       return i * n  + j, small_steps, giant_steps, getsizeof(lista)
     except KeyError:
+      e = (e * u) % p
+      giant_steps += 1
+  return None
+
+def find_index(elements, value):
+  left, right = 0, len(elements) - 1
+
+  while left <= right:
+    middle = (left + right) // 2
+    middle_element = elements[middle][0]
+
+    if middle_element == value:
+      return elements[middle][1]
+
+    if middle_element < value:
+      left = middle + 1
+    elif middle_element > value:
+      right = middle - 1
+  return None
+
+def shanks_classic_binary_search(g, h, p, ordin):
+  n = ceil(sqrt(ordin))
+  small_steps, giant_steps = 1, 0
+  e = 1
+  lista = [(e,0)]
+  for j in range(1, n):
+    e = (e * g) % p
+    if e == h:
+      return j, small_steps, giant_steps, getsizeof(lista)
+    else:
+      lista.append((e,j))
+      small_steps += 1
+  lista.sort(key=lambda x: x[0])
+  u = pow(g, p - n - 1, p)
+  s = pow(g, n, p)
+  ep = em = h
+  u = pow(g, p - n - 1, p)
+  e = h
+  giant_steps = 1
+  for i in range(0, n):
+    j = find_index(lista, e)
+    if j != None:
+      return i * n  + j, small_steps, giant_steps, getsizeof(lista)
+    else:
       e = (e * u) % p
       giant_steps += 1
   return None
@@ -260,9 +306,9 @@ def extrapolate(data, numOfPoints):
 def shakns_benchmark(numOfTests: int, maxBits: int, rand_seed = 0):
     import matplotlib.pyplot as plt
     seed(rand_seed)
-    times, small_steps_list, giant_steps_list, total_steps, list_sizes, bits = [], [], [], [], [], [], []
+    times, small_steps_list, giant_steps_list, total_steps, list_sizes, bits, time_bin, list_sizes_bin = [], [], [], [], [], [], [], []
     for numOfBits in range(10, maxBits + 5, 5):
-      time, small, giant, total, list_sz = 0, 0, 0, 0, 0
+      time, small, giant, total, list_sz, tb, lb = 0, 0, 0, 0, 0, 0, 0
       bits.append(numOfBits)
       for _ in range(numOfTests):
         p, g, e, h = gnp.logarithm_test_numbers(numOfBits)
@@ -270,18 +316,26 @@ def shakns_benchmark(numOfTests: int, maxBits: int, rand_seed = 0):
         x, small_steps, giant_steps, list_size = shanks_classic(g, h, p, p - 1)
         time += (timer() - t_start)*1000
         small += small_steps; giant += giant_steps; total += small_steps + giant_steps; list_sz += list_size
+        t_start = timer()
+        x, small_steps, giant_steps, list_size = shanks_classic_binary_search(g, h, p, p - 1)
+        tb += (timer() - t_start) * 1000; lb += list_size
       times.append(time/numOfTests)
+      time_bin.append(tb/numOfTests)
       small_steps_list.append(small/numOfTests)
       giant_steps_list.append(giant/numOfTests)
       total_steps.append(total/numOfTests)
       list_sizes.append(list_sz/numOfTests)
+      list_sizes_bin.append(lb/numOfTests)
 
     next_xs = list(range(numOfBits + 5, numOfBits + 25, 5))
     plt.figure(1)
     plt.xlim(5, numOfBits + 25)
     next_ys = extrapolate(times, len(next_xs))
+    next_ys_bin = extrapolate(time_bin, len(next_xs))
     plt.plot(np.append(bits, next_xs), np.append(times, next_ys), 'b--')
     plt.plot(bits, times, c='b')
+    plt.plot(np.append(bits, next_xs), np.append(time_bin, next_ys_bin), 'r--')
+    plt.plot(bits, time_bin, c='r')
     plt.xlabel('biti')
     plt.ylabel('milisecunde')
     plt.yscale('log')
@@ -324,8 +378,11 @@ def shakns_benchmark(numOfTests: int, maxBits: int, rand_seed = 0):
     plt.figure(5)
     plt.xlim(5, numOfBits + 25)
     next_ys = extrapolate(list_sizes, len(next_xs))
+    next_ys_bin = extrapolate(list_sizes_bin, len(next_xs))
     plt.plot(np.append(bits, next_xs), np.append(list_sizes, next_ys), 'b--')
     plt.plot(bits, list_sizes, c='b')
+    plt.plot(np.append(bits, next_xs), np.append(list_sizes_bin, next_ys_bin), 'r--')
+    plt.plot(bits, list_sizes_bin, c='r')
     plt.xlabel('biti')
     plt.ylabel('bytes')
     plt.yscale('log')
@@ -416,3 +473,15 @@ def test_shanks_middle(numOfTests: int, numOfBits: int, randSeed = 0):
       print(f"M_passed x:{x_c}, exp:{exp}, sm:{small_steps_m}, gs:{giant_steps_m}\n")
   print(f"Classic: smavg:{avg(small_steps_c_list)}, gsavg:{avg(giant_steps_c_list)}")
   print(f"Middle: smavg:{avg(small_steps_m_list)}, gsavg:{avg(giant_steps_m_list)}")
+
+if __name__ == "__main__":
+#   from memory_profiler import memory_usage
+    shakns_benchmark(30, 30, 802)
+#     for _ in range(100):
+#       p, g, e, h = gnp.logarithm_test_numbers(25)
+#       x, sm, gm, ls = shanks_classic_binary_search(g, h, p, p-1)
+#       if x != e:
+#         print(x,e)
+#   # mem_usage = memory_usage((shanks_classic, (g, h, p, p - 1)), max_iterations=1)
+#   # print('Memory usage (in chunks of .1 seconds): %s' % mem_usage)
+#   # print('Maximum memory usage: %s' % sum(mem_usage))
