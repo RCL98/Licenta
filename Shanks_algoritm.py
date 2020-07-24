@@ -332,13 +332,14 @@ def shakns_benchmark(numOfTests: int, maxBits: int, rand_seed = 0):
     plt.xlim(5, numOfBits + 25)
     next_ys = extrapolate(times, len(next_xs))
     next_ys_bin = extrapolate(time_bin, len(next_xs))
-    plt.plot(np.append(bits, next_xs), np.append(times, next_ys), 'b--')
-    plt.plot(bits, times, c='b')
-    plt.plot(np.append(bits, next_xs), np.append(time_bin, next_ys_bin), 'r--')
-    plt.plot(bits, time_bin, c='r')
+    plt.plot(np.append(bits, next_xs), np.append(times, next_ys), marker = 'o', color = 'b', linestyle = 'dashed', label = 'dispersie')
+    plt.plot(bits, times, marker = 'o', c='b')
+    plt.plot(np.append(bits, next_xs), np.append(time_bin, next_ys_bin), marker = 's', c ='r', linestyle = 'dashed', label ='cautare binara')
+    plt.plot(bits, time_bin, marker = 's', c='r')
     plt.xlabel('biti')
     plt.ylabel('milisecunde')
     plt.yscale('log')
+    plt.legend(loc="upper left")
     plt.grid(True)
     plt.savefig('imagini/shanks_classic_timp.png')
 
@@ -379,13 +380,14 @@ def shakns_benchmark(numOfTests: int, maxBits: int, rand_seed = 0):
     plt.xlim(5, numOfBits + 25)
     next_ys = extrapolate(list_sizes, len(next_xs))
     next_ys_bin = extrapolate(list_sizes_bin, len(next_xs))
-    plt.plot(np.append(bits, next_xs), np.append(list_sizes, next_ys), 'b--')
-    plt.plot(bits, list_sizes, c='b')
-    plt.plot(np.append(bits, next_xs), np.append(list_sizes_bin, next_ys_bin), 'r--')
-    plt.plot(bits, list_sizes_bin, c='r')
+    plt.plot(np.append(bits, next_xs), np.append(list_sizes, next_ys),  marker = 'o', color = 'b', linestyle = 'dashed', label = 'dispersie')
+    plt.plot(bits, list_sizes, marker = 'o', c='b')
+    plt.plot(np.append(bits, next_xs), np.append(list_sizes_bin, next_ys_bin), marker = 's', c ='r', linestyle = 'dashed', label ='cautare binara')
+    plt.plot(bits, list_sizes_bin, marker = 's', c='r')
     plt.xlabel('biti')
     plt.ylabel('bytes')
     plt.yscale('log')
+    plt.legend(loc="upper left")
     plt.grid(True)
     plt.savefig('imagini/shanks_classic_memory.png')
 
@@ -473,3 +475,15 @@ def test_shanks_middle(numOfTests: int, numOfBits: int, randSeed = 0):
       print(f"M_passed x:{x_c}, exp:{exp}, sm:{small_steps_m}, gs:{giant_steps_m}\n")
   print(f"Classic: smavg:{avg(small_steps_c_list)}, gsavg:{avg(giant_steps_c_list)}")
   print(f"Middle: smavg:{avg(small_steps_m_list)}, gsavg:{avg(giant_steps_m_list)}")
+
+# if __name__ == "__main__":
+# #   from memory_profiler import memory_usage
+#     shakns_benchmark(30, 30, 802)
+# #     for _ in range(100):
+# #       p, g, e, h = gnp.logarithm_test_numbers(25)
+# #       x, sm, gm, ls = shanks_classic_binary_search(g, h, p, p-1)
+# #       if x != e:
+# #         print(x,e)
+# #   # mem_usage = memory_usage((shanks_classic, (g, h, p, p - 1)), max_iterations=1)
+# #   # print('Memory usage (in chunks of .1 seconds): %s' % mem_usage)
+# #   # print('Maximum memory usage: %s' % sum(mem_usage))
