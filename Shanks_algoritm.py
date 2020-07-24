@@ -473,15 +473,3 @@ def test_shanks_middle(numOfTests: int, numOfBits: int, randSeed = 0):
       print(f"M_passed x:{x_c}, exp:{exp}, sm:{small_steps_m}, gs:{giant_steps_m}\n")
   print(f"Classic: smavg:{avg(small_steps_c_list)}, gsavg:{avg(giant_steps_c_list)}")
   print(f"Middle: smavg:{avg(small_steps_m_list)}, gsavg:{avg(giant_steps_m_list)}")
-
-if __name__ == "__main__":
-#   from memory_profiler import memory_usage
-    shakns_benchmark(30, 30, 802)
-#     for _ in range(100):
-#       p, g, e, h = gnp.logarithm_test_numbers(25)
-#       x, sm, gm, ls = shanks_classic_binary_search(g, h, p, p-1)
-#       if x != e:
-#         print(x,e)
-#   # mem_usage = memory_usage((shanks_classic, (g, h, p, p - 1)), max_iterations=1)
-#   # print('Memory usage (in chunks of .1 seconds): %s' % mem_usage)
-#   # print('Maximum memory usage: %s' % sum(mem_usage))
