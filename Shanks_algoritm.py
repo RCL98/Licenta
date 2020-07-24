@@ -6,7 +6,6 @@ import operator
 import generate_primes as gnp
 from timeit import default_timer as timer
 from random import randint, seed
-import numpy as np
 from sys import getsizeof
 
 def shanks_ordin_necunoscut(g, h, p):
@@ -248,14 +247,20 @@ def Shanks(g, h, p, ordin = None):
 def avg(lst):
     return reduce(lambda a, b: a + b, lst) / len(lst)
 
-def o_shanks(bits):
-  return bits * pow(2, bits // 2) / 10
+def extrapolate(data, numOfPoints):
+  ratio = 0
+  for i in range(1, len(data)):
+    ratio += data[i] // data[i - 1]
+  ratio = ratio//(len(data) - 1)
+  newPoints = [ratio * data[-1]]
+  for _ in range(1, numOfPoints):
+    newPoints.append(ratio * newPoints[-1])
+  return newPoints
 
 def shakns_benchmark(numOfTests: int, maxBits: int, rand_seed = 0):
     import matplotlib.pyplot as plt
-    from scipy import interpolate
     seed(rand_seed)
-    times, small_steps_list, giant_steps_list, total_steps, list_sizes, bits = [], [], [], [], [], []
+    times, small_steps_list, giant_steps_list, total_steps, list_sizes, bits = [], [], [], [], [], [], []
     for numOfBits in range(10, maxBits + 5, 5):
       time, small, giant, total, list_sz = 0, 0, 0, 0, 0
       bits.append(numOfBits)
@@ -271,23 +276,21 @@ def shakns_benchmark(numOfTests: int, maxBits: int, rand_seed = 0):
       total_steps.append(total/numOfTests)
       list_sizes.append(list_sz/numOfTests)
 
-    next_xs = list(range(numOfBits + 5, numOfBits + 30, 5))
+    next_xs = list(range(numOfBits + 5, numOfBits + 25, 5))
     plt.figure(1)
-    tck = interpolate.splrep(bits, times)
-    next_ys = [interpolate.splev(next_x, tck) for next_x in next_xs]
-    plt.xlim(5, numOfBits + 30)
+    plt.xlim(5, numOfBits + 25)
+    next_ys = extrapolate(times, len(next_xs))
     plt.plot(np.append(bits, next_xs), np.append(times, next_ys), 'b--')
     plt.plot(bits, times, c='b')
     plt.xlabel('biti')
-    plt.ylabel('timp(ms)')
+    plt.ylabel('milisecunde')
     plt.yscale('log')
     plt.grid(True)
     plt.savefig('imagini/shanks_classic_timp.png')
 
     plt.figure(2)
-    tck = interpolate.splrep(bits, small_steps_list)
-    next_ys = [interpolate.splev(next_x, tck) for next_x in next_xs]
-    plt.xlim(5, numOfBits + 30)
+    plt.xlim(5, numOfBits + 25)
+    next_ys = extrapolate(small_steps_list, len(next_xs))
     plt.plot(np.append(bits, next_xs), np.append(small_steps_list, next_ys), 'b--')
     plt.plot(bits, small_steps_list, c='b')
     plt.xlabel('biti')
@@ -297,9 +300,8 @@ def shakns_benchmark(numOfTests: int, maxBits: int, rand_seed = 0):
     plt.savefig('imagini/shanks_classic_pasi_mici.png')
 
     plt.figure(3)
-    tck = interpolate.splrep(bits, giant_steps_list)
-    next_ys = [interpolate.splev(next_x, tck) for next_x in next_xs]
-    plt.xlim(5, numOfBits + 30)
+    plt.xlim(5, numOfBits + 25)
+    next_ys = extrapolate(giant_steps_list, len(next_xs))
     plt.plot(np.append(bits, next_xs), np.append(giant_steps_list, next_ys), 'b--')
     plt.plot(bits, giant_steps_list, c='b')
     plt.xlabel('biti')
@@ -309,9 +311,8 @@ def shakns_benchmark(numOfTests: int, maxBits: int, rand_seed = 0):
     plt.savefig('imagini/shanks_classic_pasi_mari.png')
 
     plt.figure(4)
-    plt.xlim(5, numOfBits + 30)
-    tck = interpolate.splrep(bits, total_steps)
-    next_ys = [interpolate.splev(next_x, tck) for next_x in next_xs]
+    plt.xlim(5, numOfBits + 25)
+    next_ys = extrapolate(total_steps, len(next_xs))
     plt.plot(np.append(bits, next_xs), np.append(total_steps, next_ys), 'b--')
     plt.plot(bits, total_steps, c='b')
     plt.xlabel('biti')
@@ -321,9 +322,8 @@ def shakns_benchmark(numOfTests: int, maxBits: int, rand_seed = 0):
     plt.savefig('imagini/shanks_classic_pasi_total.png')
 
     plt.figure(5)
-    plt.xlim(5, numOfBits + 30)
-    tck = interpolate.splrep(bits, list_sizes)
-    next_ys = [interpolate.splev(next_x, tck) for next_x in next_xs]
+    plt.xlim(5, numOfBits + 25)
+    next_ys = extrapolate(list_sizes, len(next_xs))
     plt.plot(np.append(bits, next_xs), np.append(list_sizes, next_ys), 'b--')
     plt.plot(bits, list_sizes, c='b')
     plt.xlabel('biti')
