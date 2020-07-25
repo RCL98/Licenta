@@ -134,7 +134,7 @@ def shanks_classic_with_memory(g, h_values, p, ordin):
       except KeyError:
         e = (e * u) % p
         giant_steps += 1
-  return exponents, small_steps, giant_steps_list
+  return exponents, small_steps, giant_steps_list, getsizeof(lista)
 
 def shanks_general(g, h, p, ordin, r):
   n = ceil(ordin ** (1/r))
@@ -186,7 +186,7 @@ def shanks_general_with_memory(g, h_values, p, ordin, r):
       except KeyError:
         e = (e * u) % p
         giant_steps += 1
-  return exponents, small_steps, giant_steps_list
+  return exponents, small_steps, giant_steps_list, getsizeof(lista)
 
 def optim_factors(ordin):
   factori = [pow(x, e) for x, e in factorint(ordin).items()]
@@ -252,7 +252,7 @@ def shanks_factor_with_memory(g, h_values, p, l, m):
       except KeyError:
         e = (e * u) % p
         giant_steps += 1
-  return exponents, small_steps, giant_steps_list
+  return exponents, small_steps, giant_steps_list, getsizeof(lista)
 
 def shanks_middle_to_edges(g, h, p, ordin):
   n = ceil(sqrt(ordin))
@@ -416,41 +416,51 @@ def test_shanks(numOfTests: int, numOfBits: int, type: str, r = 2):
       print(f"Test passed! p:{p[0]}, time:{t:.7f} ms, small_steps:{small_steps} giant_steps:{giant_steps}")
   print(f"Avg time:{avg(times)}")
 
-def test_shanks_same_p(numOfTests: int, numOfBits: int, r = 2, radn_seed = 0):
+def test_shanks_same_p(numOfTests: int, numOfBits: int, rs = [2], radn_seed = 0):
   seed(radn_seed)
-  times_c, times_g, times_f = [], [], []
+  times_g, smalls_g, giants_g, memsizes_g = [], [], [], []
   p, g, exps, hs = gnp.logarithm_test_numbers_same_p(numOfTests, numOfBits)
   l, m = optim_factors(p - 1)
 
   t_start_c = timer()
-  x_cs, small_steps_c, giant_steps_c = shanks_classic_with_memory(g, hs, p, p - 1)
-  t_stop_c = timer()
-
-
-  t_start_g = timer()
-  x_gs, small_steps_g, giant_steps_g = shanks_general_with_memory(g, hs, p, p - 1, r)
-  t_stop_g = timer()
-
+  x_cs, small_steps_c, giant_steps_c, memsize_c = shanks_classic_with_memory(g, hs, p, p - 1)
+  time_c = (timer() - t_start_c) * 1000
 
   t_start_f = timer()
-  x_fs, small_steps_f, giant_steps_f = shanks_factor_with_memory(g, hs, p, l, m)
-  t_stop_f = timer()
+  x_fs, small_steps_f, giant_steps_f, memsize_f = shanks_factor_with_memory(g, hs, p, l, m)
+  time_f = (timer() - t_start_f) * 1000
 
-  for e, x_c, x_g, x_f in zip(exps, x_cs, x_gs, x_fs):
-    if x_c != e:
-      print(f"e:{e}  x_c:{x_c}")
-    if x_g != e:
-      print(f"e:{e}  x_g:{x_g}")
-    if x_f != e:
-      print(f"e:{e}  x_f:{x_f}")
+  for r in rs:
+    t_start_g = timer()
+    x_gs, small_steps_g, giant_steps_g, memsize_g = shanks_general_with_memory(g, hs, p, p - 1, r)
+    times_g.append((timer() - t_start_g)*1000)
+    smalls_g.append(small_steps_g)
+    giants_g.append(avg(giant_steps_g))
+    memsizes_g.append(memsize_g)
 
-  print(f"t_c: {(t_stop_c - t_start_c):.7f}, t_g: {(t_stop_g - t_start_g)}, t_f:{(t_stop_f - t_start_f)}")
-  print(f"sm_c: {small_steps_c}, sm_g: {small_steps_g}, sm_f:{small_steps_f}")
-  print()
-  for (e, g_c, g_g, g_f) in zip(exps, giant_steps_c, giant_steps_g, giant_steps_f):
-    print(f"e:{e}, giant_steps_c:{g_c}, giant_steps_g:{g_g} giant_steps_f:{g_f}")
-  print()
-  print(f"giant_steps_c_avg:{avg(giant_steps_c)}, giant_steps_g:{avg(giant_steps_g)}, giant_steps_f:{avg(giant_steps_f)}")
+  # for e, x_c, x_g, x_f in zip(exps, x_cs, x_gs, x_fs):
+  #   if x_c != e:
+  #     print(f"e:{e}  x_c:{x_c}")
+  #   if x_g != e:
+  #     print(f"e:{e}  x_g:{x_g}")
+  #   if x_f != e:
+  #     print(f"e:{e}  x_f:{x_f}")
+
+  print(f"t_c: {time_c:.3f} ms, t_f: {time_f:.3f} ms, t_g:",end=' ')
+  for r, t in zip(rs, times_g):
+    print(f"r= {r}: {t:0.3f} ms",end=" ")
+  print(f"\n\nsm_c: {small_steps_c}, sm_f: {small_steps_f}, sm_g:",end=' ')
+  for r, s in zip(rs, smalls_g):
+    print(f"r= {r}: {s}",end=" ")
+  print(f"\n\ngc_avg: {avg(giant_steps_c)}, gf_avg: {avg(giant_steps_f)}, gg_avg:",end=' ')
+  for r, g in zip(rs, giants_g):
+    print(f"r= {r}: {g}",end=" ")
+  print(f"\n\nsize_c: {memsize_c} bytes, size_f: {memsize_f} bytes, size_g:",end=' ')
+  for r, m in zip(rs, memsizes_g):
+    print(f"r= {r}: {m} bytes",end=" ")
+  # for (e, g_c, g_g, g_f) in zip(exps, giant_steps_c, giant_steps_g, giant_steps_f):
+  #   print(f"e:{e}, giant_steps_c:{g_c}, giant_steps_g:{g_g} giant_steps_f:{g_f}")
+
 
 def test_shanks_middle(numOfTests: int, numOfBits: int, randSeed = 0):
   seed(randSeed)
@@ -477,13 +487,5 @@ def test_shanks_middle(numOfTests: int, numOfBits: int, randSeed = 0):
   print(f"Middle: smavg:{avg(small_steps_m_list)}, gsavg:{avg(giant_steps_m_list)}")
 
 # if __name__ == "__main__":
-# #   from memory_profiler import memory_usage
-#     shakns_benchmark(30, 30, 802)
-# #     for _ in range(100):
-# #       p, g, e, h = gnp.logarithm_test_numbers(25)
-# #       x, sm, gm, ls = shanks_classic_binary_search(g, h, p, p-1)
-# #       if x != e:
-# #         print(x,e)
-# #   # mem_usage = memory_usage((shanks_classic, (g, h, p, p - 1)), max_iterations=1)
-# #   # print('Memory usage (in chunks of .1 seconds): %s' % mem_usage)
-# #   # print('Maximum memory usage: %s' % sum(mem_usage))
+#   # 30, 25, 2.5, 422
+#   test_shanks_same_p(100, 40, [2.25, 2.5, 2.75, 3], 43)
