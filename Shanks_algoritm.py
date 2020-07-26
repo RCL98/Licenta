@@ -1,11 +1,11 @@
-from aritmetica_modulara import sqrt
+from aritmetica_modulara import sqrt, generator_Zp
 from sympy.ntheory import factorint
-from math import ceil, log2
+from math import ceil, log2, log
 from functools import reduce
 import operator
 import generate_primes as gnp
 from timeit import default_timer as timer
-from random import randint, seed
+from random import randint, seed, sample
 import numpy as np
 from sys import getsizeof
 import bisect
@@ -416,11 +416,16 @@ def test_shanks(numOfTests: int, numOfBits: int, type: str, r = 2):
       print(f"Test passed! p:{p[0]}, time:{t:.7f} ms, small_steps:{small_steps} giant_steps:{giant_steps}")
   print(f"Avg time:{avg(times)}")
 
+def r_optim(n, m):
+  return 2*log(n)/log(n/m)
+
 def test_shanks_same_p(numOfTests: int, numOfBits: int, rs = [2], radn_seed = 0):
   seed(radn_seed)
   times_g, smalls_g, giants_g, memsizes_g = [], [], [], []
   p, g, exps, hs = gnp.logarithm_test_numbers_same_p(numOfTests, numOfBits)
   l, m = optim_factors(p - 1)
+  r_opt = r_optim(p-1,numOfTests)
+  print(f"r optim:{r_opt:.2f}")
 
   t_start_c = timer()
   x_cs, small_steps_c, giant_steps_c, memsize_c = shanks_classic_with_memory(g, hs, p, p - 1)
@@ -430,6 +435,7 @@ def test_shanks_same_p(numOfTests: int, numOfBits: int, rs = [2], radn_seed = 0)
   x_fs, small_steps_f, giant_steps_f, memsize_f = shanks_factor_with_memory(g, hs, p, l, m)
   time_f = (timer() - t_start_f) * 1000
 
+  rs += [r_opt]
   for r in rs:
     t_start_g = timer()
     x_gs, small_steps_g, giant_steps_g, memsize_g = shanks_general_with_memory(g, hs, p, p - 1, r)
@@ -449,17 +455,61 @@ def test_shanks_same_p(numOfTests: int, numOfBits: int, rs = [2], radn_seed = 0)
   print(f"t_c: {time_c:.3f} ms, t_f: {time_f:.3f} ms, t_g:",end=' ')
   for r, t in zip(rs, times_g):
     print(f"r= {r}: {t:0.3f} ms",end=" ")
-  print(f"\n\nsm_c: {small_steps_c}, sm_f: {small_steps_f}, sm_g:",end=' ')
+  print(f"\n\nsm_c: {small_steps_c:.2e}, sm_f: {small_steps_f:.2e}, sm_g:",end=' ')
   for r, s in zip(rs, smalls_g):
-    print(f"r= {r}: {s}",end=" ")
+    print(f"r= {r}: {s:.2e}",end=" ")
   print(f"\n\ngc_avg: {avg(giant_steps_c)}, gf_avg: {avg(giant_steps_f)}, gg_avg:",end=' ')
   for r, g in zip(rs, giants_g):
     print(f"r= {r}: {g}",end=" ")
-  print(f"\n\nsize_c: {memsize_c} bytes, size_f: {memsize_f} bytes, size_g:",end=' ')
+  print(f"\n\nsize_c: {memsize_c:.2e} bytes, size_f: {memsize_f:.2e} bytes, size_g:",end=' ')
   for r, m in zip(rs, memsizes_g):
-    print(f"r= {r}: {m} bytes",end=" ")
+    print(f"r= {r}: {m:.2e} bytes",end=" ")
   # for (e, g_c, g_g, g_f) in zip(exps, giant_steps_c, giant_steps_g, giant_steps_f):
   #   print(f"e:{e}, giant_steps_c:{g_c}, giant_steps_g:{g_g} giant_steps_f:{g_f}")
+
+def test_shanks_general(testStart = 100, testEnd = 900, testIter = 100, bitStart = 10, bitEnd = 30, rs = [2], rand_seed = 42):
+  import matplotlib.pyplot as plt
+  from matplotlib.lines import Line2D
+  from itertools import cycle
+  # seed(412)
+  # marker = cycle(sample(Line2D.markers.keys(), len(rs) + 1))
+  marker = cycle(['*', 'o', 's', 'p', '+'])
+  seed(rand_seed)
+  times = [[[0 for k in range(testStart, testEnd + testIter, testIter)] for j in range(len(rs) + 1)] for i in range(bitStart, bitEnd + 5, 5)]
+  total_tests = list(range(testStart, testEnd + testIter, testIter))
+  for bit_ind, bits in enumerate(range(bitStart, bitEnd + 5, 5)):
+    p = gnp.get_primes(bits, 1)[0]
+    g = generator_Zp(p)
+    fig = plt.figure(bit_ind)
+    fig.suptitle(f'p = {bits} biti')
+    for test_ind, tests in enumerate(total_tests):
+      exps = sample(range(2, p - 1), tests)
+      hs = [pow(g, exp, p) for exp in exps]
+      r_opt = r_optim(p - 1, tests)
+
+      for r_ind, r in enumerate(rs + [r_opt]):
+        t_start = timer()
+        res = shanks_general_with_memory(g, hs, p, p - 1, r)
+        times[bit_ind][r_ind][test_ind] = (timer() - t_start) * 1000
+    for ind in range(len(rs)):
+      plt.plot(total_tests, times[bit_ind][ind], marker = next(marker), label = f"r:{rs[ind]}")
+    plt.plot(total_tests, times[bit_ind][len(rs)], marker = next(marker), label=f"r_optim:{r_opt:0.2f}")
+    plt.legend()
+    plt.ylabel("Milisecunde")
+    plt.xlabel("Nr. de logaritmi")
+    plt.savefig(f'imagini/shanks_general_p_{bits}.png')
+  plt.show()
+  # total_plots = len(times);
+  # rows = total_plots//2 + total_plots%2
+  # fig = plt.figure(1)
+  # Position = range(1, total_plots + 1)
+  # for k in range(total_plots):
+  #   # add every single subplot to the figure with a for loop
+  #   ax = fig.add_subplot(rows, 2, Position[k])
+  #   for ind in range((len(rs) + 1)):
+  #     try:
+  #     ax.plot(total_tests, times[k-1][ind], label = f"r:{}")  # Or whatever you want in the subplot
+  # plt.show()
 
 
 def test_shanks_middle(numOfTests: int, numOfBits: int, randSeed = 0):
@@ -488,4 +538,7 @@ def test_shanks_middle(numOfTests: int, numOfBits: int, randSeed = 0):
 
 # if __name__ == "__main__":
 #   # 30, 25, 2.5, 422
-#   test_shanks_same_p(100, 40, [2.25, 2.5, 2.75, 3], 43)
+#   # seed(341)
+#   test_shanks_general(rs = [2.25, 2.5, 2.75, 3], rand_seed=341)
+#   # p, g, exps, hs = gnp.logarithm_test_numbers_same_p(900, 20)
+#   # test_shanks_same_p(2000, 20, [2.25, 2.5, 2.75, 3], 40)

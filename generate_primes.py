@@ -22,7 +22,7 @@ def obtine_parametrii(numar: int) -> (int, int):
 
 def alege_martori(numar: int, cardinal: int) -> list:
   martori = set()
-  if numar < cardinal:
+  if numar/cardinal < 2:
     cardinal = numar // 2
   while len(martori) < cardinal:
     martori.add(rand.randint(2, numar - 2))
@@ -126,4 +126,4 @@ def logarithm_test_numbers_same_p(numOfValues: int, numOfBts: int):
 # for (prim, gen) in prime_gen.items():
 #   print(f"Nr prim: {prim} - Generator: {gen}")
 
-
+# print([2 * p + 1 for p in get_primes(20, 5)])
