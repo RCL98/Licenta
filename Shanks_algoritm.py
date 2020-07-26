@@ -443,15 +443,7 @@ def test_shanks_same_p(numOfTests: int, numOfBits: int, rs = [2], radn_seed = 0)
     smalls_g.append(small_steps_g)
     giants_g.append(avg(giant_steps_g))
     memsizes_g.append(memsize_g)
-
-  # for e, x_c, x_g, x_f in zip(exps, x_cs, x_gs, x_fs):
-  #   if x_c != e:
-  #     print(f"e:{e}  x_c:{x_c}")
-  #   if x_g != e:
-  #     print(f"e:{e}  x_g:{x_g}")
-  #   if x_f != e:
-  #     print(f"e:{e}  x_f:{x_f}")
-
+    
   print(f"t_c: {time_c:.3f} ms, t_f: {time_f:.3f} ms, t_g:",end=' ')
   for r, t in zip(rs, times_g):
     print(f"r= {r}: {t:0.3f} ms",end=" ")
@@ -499,18 +491,6 @@ def test_shanks_general(testStart = 100, testEnd = 900, testIter = 100, bitStart
     plt.xlabel("Nr. de logaritmi")
     plt.savefig(f'imagini/shanks_general_p_{bits}.png')
   plt.show()
-  # total_plots = len(times);
-  # rows = total_plots//2 + total_plots%2
-  # fig = plt.figure(1)
-  # Position = range(1, total_plots + 1)
-  # for k in range(total_plots):
-  #   # add every single subplot to the figure with a for loop
-  #   ax = fig.add_subplot(rows, 2, Position[k])
-  #   for ind in range((len(rs) + 1)):
-  #     try:
-  #     ax.plot(total_tests, times[k-1][ind], label = f"r:{}")  # Or whatever you want in the subplot
-  # plt.show()
-
 
 def test_shanks_middle(numOfTests: int, numOfBits: int, randSeed = 0):
   seed(randSeed)
