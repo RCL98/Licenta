@@ -8,7 +8,6 @@ from timeit import default_timer as timer
 from random import randint, seed, sample
 import numpy as np
 from sys import getsizeof
-import bisect
 
 def shanks_ordin_necunoscut(g, h, p):
   rad_p = ceil(sqrt(p - 1))
@@ -41,13 +40,13 @@ def shanks_ordin_necunoscut(g, h, p):
 
 def shanks_classic(g, h, p, ordin):
   n = ceil(sqrt(ordin))
-  small_steps, giant_steps = 1, 0
+  small_steps = 1
   e = 1
   lista = {e: 0}
   for j in range(1, n):
     e = (e * g) % p
     if e == h:
-      return j, small_steps, giant_steps, getsizeof(lista)
+      return j, small_steps, 0, getsizeof(lista)
     else:
       lista[e] = j
       small_steps += 1
@@ -56,14 +55,12 @@ def shanks_classic(g, h, p, ordin):
   ep = em = h
   u = pow(g, p - n - 1, p)
   e = h
-  giant_steps = 1
   for i in range(0, n):
     try:
       j = lista[e]
-      return i * n  + j, small_steps, giant_steps, getsizeof(lista)
+      return i * n  + j, small_steps, i + 1, getsizeof(lista)
     except KeyError:
       e = (e * u) % p
-      giant_steps += 1
   return None
 
 def find_index(elements, value):
@@ -84,13 +81,13 @@ def find_index(elements, value):
 
 def shanks_classic_binary_search(g, h, p, ordin):
   n = ceil(sqrt(ordin))
-  small_steps, giant_steps = 1, 0
+  small_steps = 1
   e = 1
   lista = [(e,0)]
   for j in range(1, n):
     e = (e * g) % p
     if e == h:
-      return j, small_steps, giant_steps, getsizeof(lista)
+      return j, small_steps, 0, getsizeof(lista)
     else:
       lista.append((e,j))
       small_steps += 1
@@ -100,14 +97,12 @@ def shanks_classic_binary_search(g, h, p, ordin):
   ep = em = h
   u = pow(g, p - n - 1, p)
   e = h
-  giant_steps = 1
   for i in range(0, n):
     j = find_index(lista, e)
     if j != None:
-      return i * n  + j, small_steps, giant_steps, getsizeof(lista)
+      return i * n  + j, small_steps, i + 1, getsizeof(lista)
     else:
       e = (e * u) % p
-      giant_steps += 1
   return None
 
 def shanks_classic_with_memory(g, h_values, p, ordin):
@@ -124,42 +119,38 @@ def shanks_classic_with_memory(g, h_values, p, ordin):
   exponents, giant_steps_list = [], []
   for h in h_values:
     e = h
-    giant_steps = 1
     for i in range(0, n):
       try:
         j = lista[e]
         exponents.append(i * n + j)
-        giant_steps_list.append(giant_steps)
+        giant_steps_list.append(i + 1)
         break
       except KeyError:
         e = (e * u) % p
-        giant_steps += 1
   return exponents, small_steps, giant_steps_list, getsizeof(lista)
 
 def shanks_general(g, h, p, ordin, r):
   n = ceil(ordin ** (1/r))
   m = ceil(ordin/n)
-  small_steps, giant_steps = 1, 0
+  small_steps = 1
   e = 1
   lista = {e: 0}
   for j in range(1, m):
     e = (e * g) % p
     if e == h:
-      return j, small_steps, giant_steps
+      return j, small_steps, 0
     else:
       lista[e] = j
       small_steps += 1
 
   u = pow(g, p - m - 1, p)
   e = h
-  giant_steps = 1
   for i in range(0, n):
     try:
       j = lista[e]
-      return i * m + j, small_steps, giant_steps
+      return i * m + j, small_steps, i + 1
     except KeyError:
       e = (e * u) % p
-      giant_steps += 1
   return None
 
 def shanks_general_with_memory(g, h_values, p, ordin, r):
@@ -176,16 +167,14 @@ def shanks_general_with_memory(g, h_values, p, ordin, r):
   exponents, giant_steps_list = [], []
   for h in h_values:
     e = h
-    giant_steps = 1
     for i in range(0, n):
       try:
         j = lista[e]
         exponents.append(i * m + j)
-        giant_steps_list.append(giant_steps)
+        giant_steps_list.append(i + 1)
         break
       except KeyError:
         e = (e * u) % p
-        giant_steps += 1
   return exponents, small_steps, giant_steps_list, getsizeof(lista)
 
 def optim_factors(ordin):
@@ -207,27 +196,25 @@ def optim_factors(ordin):
   return l, m
 
 def shanks_factor(g, h, p, l, m):
-  small_steps, giant_steps = 1, 0
+  small_steps = 1
   e = 1
   lista = {e: 0}
   for j in range(1, l ** 2):
     e = (e * g) % p
     if e == h:
-      return j, small_steps, giant_steps
+      return j, small_steps, 0
     else:
       lista[e] = j
       small_steps += 1
 
   u = pow(g, p - l ** 2 - 1, p)
   e = h
-  giant_steps = 1
   for i in range(0, m ** 2):
     try:
       j = lista[e]
-      return i * (l ** 2) + j, small_steps, giant_steps
+      return i * (l ** 2) + j, small_steps, i + 1
     except KeyError:
       e = (e * u) % p
-      giant_steps += 1
   return None
 
 def shanks_factor_with_memory(g, h_values, p, l, m):
@@ -242,47 +229,43 @@ def shanks_factor_with_memory(g, h_values, p, l, m):
   exponents, giant_steps_list = [], []
   for h in h_values:
     e = h
-    giant_steps = 1
     for i in range(0, m ** 2):
       try:
         j = lista[e]
         exponents.append(i * (l ** 2) + j)
-        giant_steps_list.append(giant_steps)
+        giant_steps_list.append(i + 1)
         break
       except KeyError:
         e = (e * u) % p
-        giant_steps += 1
   return exponents, small_steps, giant_steps_list, getsizeof(lista)
 
-def shanks_middle_to_edges(g, h, p, ordin):
+def shanks_centered(g, h, p, ordin):
   n = ceil(sqrt(ordin))
   K = ordin // 2
-  small_steps, giant_steps = 1, 0
+  small_steps = 1
   e = pow(g, K, p)
   lista = {e: 0}
   for j in range(1, n):
     e = (e * g) % p
     if e == h:
-      return j, small_steps, giant_steps
+      return K + j, small_steps, 0
     else:
       lista[e] = j
       small_steps += 1
   u = pow(g, p - n - 1, p)
   s = pow(g, n, p)
   ep = em = h
-  giant_steps = 2
   for i in range(0, n):
     try:
       j = lista[em]
-      return j + K - i * n, small_steps, giant_steps
+      return j + K - i * n, small_steps, 2 * (i + 1)
     except KeyError:
       try:
         j = lista[ep]
-        return K + j + i * n, small_steps, giant_steps
+        return K + j + i * n, small_steps, 2 * (i + 1)
       except KeyError:
         ep = (ep * u) % p
         em = (em * s) % p
-        giant_steps += 2
   return None
 
 def Shanks(g, h, p, ordin = None):
@@ -443,7 +426,7 @@ def test_shanks_same_p(numOfTests: int, numOfBits: int, rs = [2], radn_seed = 0)
     smalls_g.append(small_steps_g)
     giants_g.append(avg(giant_steps_g))
     memsizes_g.append(memsize_g)
-    
+
   print(f"t_c: {time_c:.3f} ms, t_f: {time_f:.3f} ms, t_g:",end=' ')
   for r, t in zip(rs, times_g):
     print(f"r= {r}: {t:0.3f} ms",end=" ")
@@ -456,69 +439,114 @@ def test_shanks_same_p(numOfTests: int, numOfBits: int, rs = [2], radn_seed = 0)
   print(f"\n\nsize_c: {memsize_c:.2e} bytes, size_f: {memsize_f:.2e} bytes, size_g:",end=' ')
   for r, m in zip(rs, memsizes_g):
     print(f"r= {r}: {m:.2e} bytes",end=" ")
-  # for (e, g_c, g_g, g_f) in zip(exps, giant_steps_c, giant_steps_g, giant_steps_f):
-  #   print(f"e:{e}, giant_steps_c:{g_c}, giant_steps_g:{g_g} giant_steps_f:{g_f}")
 
-def test_shanks_general(testStart = 100, testEnd = 900, testIter = 100, bitStart = 10, bitEnd = 30, rs = [2], rand_seed = 42):
+
+def test_shanks_general(testStart=100, testEnd=900, testIter=100, bitStart=10, bitEnd=30, rs=[2], rand_seed=42):
   import matplotlib.pyplot as plt
   from matplotlib.lines import Line2D
   from itertools import cycle
   # seed(412)
   # marker = cycle(sample(Line2D.markers.keys(), len(rs) + 1))
+  plt.tight_layout(pad=0.05)
   marker = cycle(['*', 'o', 's', 'p', '+'])
+
   seed(rand_seed)
-  times = [[[0 for k in range(testStart, testEnd + testIter, testIter)] for j in range(len(rs) + 1)] for i in range(bitStart, bitEnd + 5, 5)]
-  total_tests = list(range(testStart, testEnd + testIter, testIter))
-  for bit_ind, bits in enumerate(range(bitStart, bitEnd + 5, 5)):
+  times = [[[0 for k in range(testStart, testEnd + testIter, testIter)] for j in range(len(rs) + 1)] for i in
+           range(bitStart, bitEnd + 5, 5)]
+  total_tests = list(range(testStart, testEnd + testIter, testIter));fig_ind = 0
+  for bit_ind, bits in enumerate(range(bitStart, bitEnd + 10, 10)):
+    print(f"Started: {bits}")
     p = gnp.get_primes(bits, 1)[0]
     g = generator_Zp(p)
-    fig = plt.figure(bit_ind)
-    fig.suptitle(f'p = {bits} biti')
+    fig = plt.figure(fig_ind);fig_ind +=1
+    # fig.suptitle(f'p = {bits} biti')
+    r_optims = []
     for test_ind, tests in enumerate(total_tests):
+      print(f"Curent Test: {tests}", end=' ')
       exps = sample(range(2, p - 1), tests)
       hs = [pow(g, exp, p) for exp in exps]
       r_opt = r_optim(p - 1, tests)
-
+      r_optims.append(r_opt)
       for r_ind, r in enumerate(rs + [r_opt]):
         t_start = timer()
         res = shanks_general_with_memory(g, hs, p, p - 1, r)
         times[bit_ind][r_ind][test_ind] = (timer() - t_start) * 1000
+      print(f"Time: {sum([sum(t) for t in times[bit_ind]]):.2e}")
     for ind in range(len(rs)):
-      plt.plot(total_tests, times[bit_ind][ind], marker = next(marker), label = f"r:{rs[ind]}")
-    plt.plot(total_tests, times[bit_ind][len(rs)], marker = next(marker), label=f"r_optim:{r_opt:0.2f}")
+      plt.plot(total_tests, times[bit_ind][ind], marker=next(marker), label=f"r:{rs[ind]}")
+    plt.plot(total_tests, times[bit_ind][len(rs)], marker=next(marker), label="r optim")
     plt.legend()
     plt.ylabel("Milisecunde")
     plt.xlabel("Nr. de logaritmi")
-    plt.savefig(f'imagini/shanks_general_p_{bits}.png')
+    plt.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
+    plt.savefig(f'imagini/shanks_general_p_{bits}.png', bbox_inches='tight')
+    fig = plt.figure(fig_ind);fig_ind += 1
+    plt.plot(total_tests, r_optims, marker='X')
+    plt.ylabel("r optim")
+    plt.xlabel("Nr. de logaritmi")
+    plt.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
+    plt.savefig(f'imagini/shanks_general_p_{bits}_r_optim.png', bbox_inches='tight')
+    print(f"Finished: {bits}")
   plt.show()
 
-def test_shanks_middle(numOfTests: int, numOfBits: int, randSeed = 0):
+
+def test_shanks_middle(numOfTests: int, numOfBits: list, randSeed = 0, centered = True):
+  import matplotlib.pyplot as plt
   seed(randSeed)
-  giant_steps_c_list, small_steps_c_list = [], []
-  giant_steps_m_list, small_steps_m_list = [], []
-  for iter in range(numOfTests):
-    p, g, exp, h = gnp.logarithm_test_numbers(numOfBits, True)
-    print("iter:", iter)
-    x_c, small_steps_c, giant_steps_c = shanks_classic(g, h, p, p - 1)
-    if x_c != exp:
-      print(f"Classic x:{x_c}, exp:{exp}")
-    else:
-      giant_steps_c_list.append(giant_steps_c)
-      small_steps_c_list.append(small_steps_c)
-      print(f"C_passed x:{x_c}, exp:{exp}, sm:{small_steps_c}, gs:{giant_steps_c}")
-    x_m, small_steps_m, giant_steps_m = shanks_middle_to_edges(g, h, p, p - 1)
-    if x_m != exp:
-      print(f"Middle x:{x_m}, exp:{exp}\n")
-    else:
-      giant_steps_m_list.append(giant_steps_m)
-      small_steps_m_list.append(small_steps_m)
-      print(f"M_passed x:{x_c}, exp:{exp}, sm:{small_steps_m}, gs:{giant_steps_m}\n")
-  print(f"Classic: smavg:{avg(small_steps_c_list)}, gsavg:{avg(giant_steps_c_list)}")
-  print(f"Middle: smavg:{avg(small_steps_m_list)}, gsavg:{avg(giant_steps_m_list)}")
+  giant_steps_class_list, times_clasic = [], []
+  giant_steps_centered_list, times_centered = [], []
+  for bits in numOfBits:
+    time_clas, time_cent = [], []
+    giant_clas, giant_cent = [], []
+    for iter in range(numOfTests):
+      p, g, exp, h = gnp.logarithm_test_numbers(bits, centered)
+      # print("iter:", iter)
+      t = timer()
+      x_c, _, giant_steps_c, _ = shanks_classic(g, h, p, p - 1)
+      giant_clas.append(giant_steps_c)
+      passed_time = (timer() - t)*1000
+      time_clas.append(passed_time)
+      # print(f"C_passed x:{x_c}, exp:{exp}, sm:{small_steps_c}, gs:{giant_steps_c} time:{passed_time:.3f}")
+
+      t = timer()
+      x_m, _, giant_steps_m = shanks_centered(g, h, p, p - 1)
+      giant_cent.append(giant_steps_m)
+      passed_time = (timer() - t) * 1000
+      time_cent.append(passed_time)
+      # print(f"M_passed x:{x_c}, exp:{exp}, sm:{small_steps_m}, gs:{giant_steps_m} time:{passed_time:.3f} \n")
+    giant_steps_class_list.append(avg(giant_clas))
+    giant_steps_centered_list.append(avg(giant_cent))
+    times_clasic.append(avg(time_clas))
+    times_centered.append(avg(time_cent))
+
+  fig = plt.figure(0)
+  plt.plot(numOfBits, times_clasic, color='b', marker = 'x', label = 'clasic')
+  plt.plot(numOfBits, times_centered, color='r', marker = 'o', label = 'centrat')
+  plt.ylabel("milisecunde")
+  plt.xlabel("biti")
+  plt.legend()
+  plt.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
+  plt.savefig(f'imagini/shanks_centered_timp.png', bbox_inches='tight')
+
+  fig_1 = plt.figure(1)
+  plt.plot(numOfBits, giant_steps_class_list, color='b', marker = 'x', label = 'clasic')
+  plt.plot(numOfBits, giant_steps_centered_list, color='r', marker = 'o', label = 'centrat')
+  plt.ylabel("OM")
+  plt.xlabel("biti")
+  plt.legend()
+  plt.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
+  plt.savefig(f'imagini/shanks_centered_oms.png', bbox_inches='tight')
+
+  plt.show()
+
+  # print(f"Classic: gsavg:{avg(giant_steps_c_list)} claisc_time:{avg(times_clasic):.3f}")
+  # print(f"Centered: gsavg:{avg(giant_steps_m_list)} centered_time:{avg(times_centered):.3f}")
 
 # if __name__ == "__main__":
+  # print(multiprocessing.cpu_count())
+  # test_shanks_middle(200, [10, 15, 20, 25, 30], 42, False)
 #   # 30, 25, 2.5, 422
 #   # seed(341)
-#   test_shanks_general(rs = [2.25, 2.5, 2.75, 3], rand_seed=341)
+#   test_shanks_general(bitStart = 20, bitEnd = 30, testStart= 1000, testEnd=10000, testIter=1000, rs = [2.25, 2.5, 2.75, 3], rand_seed=341)
 #   # p, g, exps, hs = gnp.logarithm_test_numbers_same_p(900, 20)
 #   # test_shanks_same_p(2000, 20, [2.25, 2.5, 2.75, 3], 40)
