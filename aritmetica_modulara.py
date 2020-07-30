@@ -3,6 +3,9 @@ from functools import reduce
 from sympy.ntheory import factorint
 import math
 
+def avg(lst):
+  return reduce(lambda a, b: a + b, lst) / len(lst)
+
 def tonelli_shanks(n, p):
   """Tonelli-shanks algorithm for computing the square root
   of n modulo a prime p.
@@ -66,7 +69,6 @@ def tonelli_shanks(n, p):
     raise ValueError("Cannot compute square root")
 
   return r
-
 
 def sqrt(value, modulus=None):
   if modulus is None:
