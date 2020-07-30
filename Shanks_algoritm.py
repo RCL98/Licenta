@@ -1,4 +1,4 @@
-from aritmetica_modulara import sqrt, generator_Zp
+from aritmetica_modulara import sqrt, generator_Zp, avg
 from sympy.ntheory import factorint
 from math import ceil, log2, log
 from functools import reduce
@@ -273,9 +273,6 @@ def Shanks(g, h, p, ordin = None):
     return Shanks_classic(g, h, p, ordin)
   return Shanks_ordin_necunoscut(g, h, p)
 
-def avg(lst):
-    return reduce(lambda a, b: a + b, lst) / len(lst)
-
 def extrapolate(data, numOfPoints):
   ratio = 0
   for i in range(1, len(data)):
@@ -525,7 +522,7 @@ def test_shanks_middle(numOfTests: int, numOfBits: list, randSeed = 0, centered 
   plt.ylabel("milisecunde")
   plt.xlabel("biti")
   plt.legend()
-  plt.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
+  # plt.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
   plt.savefig(f'imagini/shanks_centered_timp.png', bbox_inches='tight')
 
   fig_1 = plt.figure(1)
@@ -534,7 +531,7 @@ def test_shanks_middle(numOfTests: int, numOfBits: list, randSeed = 0, centered 
   plt.ylabel("OM")
   plt.xlabel("biti")
   plt.legend()
-  plt.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
+  # plt.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
   plt.savefig(f'imagini/shanks_centered_oms.png', bbox_inches='tight')
 
   plt.show()
@@ -542,9 +539,9 @@ def test_shanks_middle(numOfTests: int, numOfBits: list, randSeed = 0, centered 
   # print(f"Classic: gsavg:{avg(giant_steps_c_list)} claisc_time:{avg(times_clasic):.3f}")
   # print(f"Centered: gsavg:{avg(giant_steps_m_list)} centered_time:{avg(times_centered):.3f}")
 
-# if __name__ == "__main__":
+if __name__ == "__main__":
   # print(multiprocessing.cpu_count())
-  # test_shanks_middle(200, [10, 15, 20, 25, 30], 42, False)
+  test_shanks_middle(200, [10, 15, 20, 25, 30], 42, True)
 #   # 30, 25, 2.5, 422
 #   # seed(341)
 #   test_shanks_general(bitStart = 20, bitEnd = 30, testStart= 1000, testEnd=10000, testIter=1000, rs = [2.25, 2.5, 2.75, 3], rand_seed=341)
