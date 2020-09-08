@@ -1,16 +1,7 @@
-# import numpy as np
-import pandas as pd
 import random as rand
 import math
 import aritmetica_modulara as artmod
 from sympy.ntheory import factorint
-
-def genereaza_numere(numBits: int, cardinal: int) -> list:
-  # numere = []
-  # for ind in range(cardinal):
-  #   numere.append(rand.getrandbits(numBits))
-  #   #binNumbers.append(np.random.binomial(size = numOfBits, n = 1, p = 0.5))
-  return rand.sample(range(2 ** (numBits - 1), 2 ** numBits - 1), cardinal)
 
 def obtine_parametrii(numar: int) -> (int, int):
   numar -= 1
@@ -155,9 +146,3 @@ def worst_shanks_numbers(numOfBits: int):
     exp = n * (n - 2)
   h = pow(generator, exp, prime)
   return prime, generator, exp, h
-
-if __name__ == "__main__":
-  p, g, e, h = logarithm_test_numbers(10)
-  print(f"p: {p},g: {g},e: {e},h: {h}")
-  for s in range(10):
-    print(pow(g, s, p))
