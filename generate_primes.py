@@ -6,11 +6,11 @@ import aritmetica_modulara as artmod
 from sympy.ntheory import factorint
 
 def genereaza_numere(numBits: int, cardinal: int) -> list:
-  numere = []
-  for ind in range(cardinal):
-    numere.append(rand.getrandbits(numBits))
-    #binNumbers.append(np.random.binomial(size = numOfBits, n = 1, p = 0.5))
-  return numere
+  # numere = []
+  # for ind in range(cardinal):
+  #   numere.append(rand.getrandbits(numBits))
+  #   #binNumbers.append(np.random.binomial(size = numOfBits, n = 1, p = 0.5))
+  return rand.sample(range(2 ** (numBits - 1), 2 ** numBits - 1), cardinal)
 
 def obtine_parametrii(numar: int) -> (int, int):
   numar -= 1
@@ -22,7 +22,7 @@ def obtine_parametrii(numar: int) -> (int, int):
 
 def alege_martori(numar: int, cardinal: int) -> list:
   martori = set()
-  if numar/cardinal < 2:
+  if numar//cardinal < 2:
     cardinal = numar // 2
   while len(martori) < cardinal:
     martori.add(rand.randint(2, numar - 2))
@@ -65,65 +65,99 @@ def get_primes(numBits: int, cardinal: int) -> list:
 
   numere_prime = []
   while len(numere_prime) < cardinal:
-    numar = rand.getrandbits(numBits)
+    numar = rand.randint(2 ** (numBits - 1), 2 ** numBits - 1) #rand.getrandbits(numBits)
     if miller_rabin_test(numar, mr_iteratii) == True:
       numere_prime.append(numar)
   return numere_prime
 
+def get_prime(numOfBits: int, safe = False):
+  if safe == False:
+    return get_primes(numOfBits, 1)[0]
+  else:
+    iter = 0
+    while 1 or iter < 10**10:
+      p = get_primes(numOfBits, 1)[0]
+      t = factorint(p - 1)
+      if len(t) == 2:
+        if 2 in t.keys() and t[2] == 1:
+          return p
+      iter += 1
+    print("No safe prime found in max iterations!")
+
+def primes_upto(limit):
+  is_prime = [False] * 2 + [True] * (limit - 1)
+  for n in range(int(limit ** 0.5 + 1.5)):  # stop at ``sqrt(limit)``
+    if is_prime[n]:
+      for i in range(n * n, limit + 1, n):
+        is_prime[i] = False
+  return len([i for i, prime in enumerate(is_prime) if prime])
+
+def sieveOfEratosthenes(n):
+  # Create a boolean array "prime[0..n]" and initialize
+  #  all entries it as true. A value in prime[i] will
+  # finally be false if i is Not a prime, else true.
+  prime = [True for i in range(n)]
+  p = 2
+  while (p * p <= n):
+    # If prime[p] is not changed, then it is a prime
+    if (prime[p] == True):
+      # Update all multiples of p
+      for i in range(p * p, n, p):
+        prime[i] = False
+    p += 1
+  return sum(prime)
+
 def pohlig_primes(magnitude):
   m = 2
   N = 1
-  while math.log10(N) < magnitude or not miller_rabin_test(N + 1, 15):
+  while math.log2(N) < magnitude or not miller_rabin_test(N + 1, 15):
     N *= m
     m = m + 1
   p = N + 1
-  print(p)
-  print("p =", m - 1, "! + 1 is prime")
+  # print(p)
+  # print("p =", m - 1, "! + 1 is prime")
   return p
 
-# def logarithm_test_numbers(size: int, numOfBts: int, to_csv = False) ->  pd.DataFrame:
-#   primes = get_primes(numOfBts, size)
-#   generators = [artmod.generator_Zp(p) for p in primes]
-#   exponents = [rand.randint(2, p - 1) for p in primes]
-#   h_values = [pow(g, e, p) for (g, e, p) in zip(generators, exponents, primes)]
-#   if to_csv:
-#     plds = pd.DataFrame(list(zip(primes, generators, exponents, h_values)), columns = ['Primes', 'Generators', 'Exponents', 'h_values'])
-#     plds.to_csv('plds.csv', index=False, header=True, sep='\t', encoding='utf-8')
-#   return primes, generators, exponents, h_values
+def logarithm_test_numbers(numOfBits: int, centered = False, silvPohHell = False, safe = False):
+  if not silvPohHell:
+    prime = get_prime(numOfBits, safe)
+    while prime < 10:
+      prime = get_prime(numOfBits, safe)
+  else:
+    prime = pohlig_primes(numOfBits)
+    while prime < 10:
+      prime = get_prime(numOfBits, safe)
 
-def logarithm_test_numbers(numOfBts: int, centered = False):
-  prime = get_primes(numOfBts, 1)[0]
-  while prime < 10:
-    prime = get_primes(numOfBts, 1)[0]
   generator = artmod.generator_Zp(prime)
   if centered:
-    exp = rand.randint((prime - 1) // 2 - (prime - 1) // 5,
-                       (prime - 1) // 2 + (prime - 1) // 5 + 1)
+    exp = rand.randint((prime - 2) // 2 - (prime - 2) // 5,
+                       (prime - 2) // 2 + (prime - 2) // 5 + 1)
   else:
-    exp = rand.randint(2, prime - 1)
+    exp = rand.randint(2, prime - 2)
   h = pow(generator, exp, prime)
   return prime, generator, exp, h
 
 def logarithm_test_numbers_same_p(numOfValues: int, numOfBts: int):
   prime = get_primes(numOfBts, 1)[0]
   generator = artmod.generator_Zp(prime)
-  exps = rand.sample(range(2, prime - 1), numOfValues)
+  exps = rand.sample(range(2, prime - 2), numOfValues)
   hs = [pow(generator, exp, prime) for exp in exps]
   return prime, generator, exps, hs
 
-# plds = logarithm_test_numbers(35, 40)
+def worst_shanks_numbers(numOfBits: int):
+  prime = get_primes(numOfBits, 1)[0]
+  while prime < 10:
+    prime = get_primes(numOfBits, 1)[0]
+  generator = artmod.generator_Zp(prime)
+  n = math.ceil(artmod.sqrt(prime - 1))
+  exp =  n * (n - 1)
+  if exp >= prime - 1:
+    exp = n * (n - 2)
+  h = pow(generator, exp, prime)
+  return prime, generator, exp, h
 
-
-
-# rand.seed(45)
-# # q = pohlig_primes(320)
-# prime = numere_prime_posibile(24, 5)
-# # print(prime[0] * prime[1], prime[0:2])
-# prime_gen = {}
-# for prim in prime:
-#   prime_gen[prim] = artmod.generator_Zp(prim)
-#
-# for (prim, gen) in prime_gen.items():
-#   print(f"Nr prim: {prim} - Generator: {gen}")
-
-# print([2 * p + 1 for p in get_primes(20, 5)])
+if __name__ == "__main__":
+  p, g, e, h = logarithm_test_numbers(10)
+  print(f"p: {p},g: {g},e: {e},h: {h}")
+  for s in range(10):
+    print(pow(g, s, p))
