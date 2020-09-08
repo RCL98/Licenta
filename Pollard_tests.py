@@ -104,21 +104,6 @@ def test_pollard(numOfTests: int, listOfBits: list, contests: dict, img_path: st
   # plt.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
   plt.yscale('log')
   plt.savefig(img_path + '/pollard_iter.png', bbox_inches='tight')
-
-  # plt.figure(2)
-  # print("The avg grouop operations: ", end=''); avgos = []
-  # for ind_c, c in enumerate(contests):
-  #   the_gos = [go[ind_c] for go in group_operations]
-  #   avg_c = avg(the_gos)/ceil(sqrt(p))
-  #   print(c[0] + '-' + c[1] + f": {avg_c:.4f}", end=' ')
-  #   avgos.append(avg_c)
-  #   plt.plot(listOfBits, the_gos, marker=next(marker), label= c[0] + '_' + c[1])
-  # plt.legend()
-  # plt.ylabel("Operații de grup")
-  # plt.xlabel("biti")
-  # # plt.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
-  # plt.yscale('log')
-  # plt.savefig(img_path + '/pollard_iter.png', bbox_inches='tight')
   plt.show()
   return avgits
 
