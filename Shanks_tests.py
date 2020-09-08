@@ -254,29 +254,6 @@ def test_shanks_middle(numOfTests: int, numOfBits: list, randSeed = 0, centered 
     times_clasic.append(avg(time_clas))
     times_centered.append(avg(time_cent))
 
-  # fig = plt.figure(0)
-  # plt.plot(numOfBits, times_clasic, color='b', marker = 'x', label = 'clasic')
-  # plt.plot(numOfBits, times_centered, color='r', marker = 'o', label = 'centrat')
-  # plt.ylabel("milisecunde")
-  # plt.xlabel("biti")
-  # plt.legend()
-  # # plt.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
-  # plt.savefig(f'imagini/shanks_centered_timp.png', bbox_inches='tight')
-  #
-  # fig_1 = plt.figure(1)
-  # plt.plot(numOfBits, giant_steps_class_list, color='b', marker = 'x', label = 'clasic')
-  # plt.plot(numOfBits, giant_steps_centered_list, color='r', marker = 'o', label = 'centrat')
-  # plt.ylabel("OM")
-  # plt.xlabel("biti")
-  # plt.legend()
-  # # plt.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
-  # plt.savefig(f'imagini/shanks_centered_oms.png', bbox_inches='tight')
-  #
-  # plt.show()
-  #
-  # # print(f"Classic: gsavg:{avg(giant_steps_c_list)} claisc_time:{avg(times_clasic):.3f}")
-  # # print(f"Centered: gsavg:{avg(giant_steps_m_list)} centered_time:{avg(times_centered):.3f}")
-
 def test_shanks_clasic_inter_grumpy(numOfTests: int, numOfBits: list, randSeeds = [0]):
   total_steps_class_list, times_clasic_list, total_memory_clasic = [], [], []
   total_steps_inter_list, times_inter_list, total_memory_inter = [], [], []
