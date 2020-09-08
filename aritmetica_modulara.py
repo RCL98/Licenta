@@ -12,70 +12,6 @@ def countBits(number):
   return int((math.log(number) /
               math.log(2)) + 1);
 
-def tonelli_shanks(n, p):
-  """Tonelli-shanks algorithm for computing the square root
-  of n modulo a prime p.
-
-  n must be in the range [0..p-1].
-  p must be at least even.
-
-  The return value r is the square root of modulo p. If non-zero,
-  another solution will also exist (p-r).
-
-  Note we cannot assume that p is really a prime: if it's not,
-  we can either raise an exception or return the correct value.
-  """
-
-  # See https://rosettacode.org/wiki/Tonelli-Shanks_algorithm
-
-  if n in (0, 1):
-    return n
-
-  if p % 4 == 3:
-    root = pow(n, (p + 1) // 4, p)
-    if pow(root, 2, p) != n:
-      raise ValueError("Cannot compute square root")
-    return root
-
-  s = 1
-  q = (p - 1) // 2
-  while not (q & 1):
-    s += 1
-    q >>= 1
-
-  z = n.__class__(2)
-  while True:
-    euler = pow(z, (p - 1) // 2, p)
-    if euler == 1:
-      z += 1
-      continue
-    if euler == p - 1:
-      break
-    # Most probably p is not a prime
-    raise ValueError("Cannot compute square root")
-
-  m = s
-  c = pow(z, q, p)
-  t = pow(n, q, p)
-  r = pow(n, (q + 1) // 2, p)
-
-  while t != 1:
-    for i in range(0, m):
-      if pow(t, 2 ** i, p) == 1:
-        break
-    if i == m:
-      raise ValueError("Cannot compute square root of %d mod %d" % (n, p))
-    b = pow(c, 2 ** (m - i - 1), p)
-    m = i
-    c = b ** 2 % p
-    t = (t * b ** 2) % p
-    r = (r * b) % p
-
-  if pow(r, 2, p) != n:
-    raise ValueError("Cannot compute square root")
-
-  return r
-
 def chinese_lemma(module, resturi):
   N = reduce(lambda a, b: a * b, module)
   rezultat = 0
@@ -229,59 +165,6 @@ def hensel_lifting(solutions, M, b, power, modulus):
     y_2 = ((y - A @ x)//modulus ** i) % modulus
     A_mod = A % modulus
     x += np.array(gauss_mod(A_mod, y_2, modulus)) * modulus ** i
-  # M_mod = np.array(M) % (modulus ** power)
-  # b_mod = np.array(b) % (modulus ** power)
-  # if np.array_equal((M_mod @ x) % (modulus ** power), b_mod):
-  #   o = 1
-  # else:
-  #   c = (M_mod @ x) % (modulus ** power)
   return x.tolist()
 
-# def gauss(a, b, modulus):
-#   a = deepcopy(a)
-#   b = deepcopy(b)
-#   n = len(a)
-#   p = len(b[0])
-#   det = 1
-#   for i in range(n - 1):
-#     k = i
-#     for j in range(i + 1, n):
-#       if abs(a[j][i]) > abs(a[k][i]):
-#         k = j
-#     if k != i:
-#       a[i], a[k] = a[k], a[i]
-#       b[i], b[k] = b[k], b[i]
-#       det = -det
-#
-#     for j in range(i + 1, n):
-#       t = a[j][i] * inverse(a[i][i], modulus)
-#       for k in range(i + 1, n):
-#         a[j][k] = (a[j][k] - t * a[i][k]) % modulus
-#       for k in range(p):
-#         b[j][k] = (b[j][k] - t * b[i][k]) % modulus
-#
-#   for i in range(n - 1, -1, -1):
-#     for j in range(i + 1, n):
-#       t = a[i][j]
-#       for k in range(p):
-#         b[i][k] = (b[i][k] - t * b[j][k]) % modulus
-#     t = inverse(a[i][i], modulus)
-#     det = (det * a[i][i]) % modulus
-#     for j in range(p):
-#       b[i][j] = (b[i][j] * t) %modulus
-#   return det, b
 
-
-def zeromat(p, q):
-  return [[0] * q for i in range(p)]
-
-def matmul(a, b, modulus):
-  n, p = len(a), len(a[0])
-  p1, q = len(b), len(b[0])
-  if p != p1:
-    raise ValueError("Incompatible dimensions")
-  c = zeromat(n, q)
-  for i in range(n):
-    for j in range(q):
-      c[i][j] = sum((a[i][k] * b[k][j]) % modulus for k in range(p))
-  return c
